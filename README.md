@@ -1,4 +1,4 @@
-# Saga - Columnar in-memory data store
+# Saga - Columnar in-memory data store [![Build Status](https://travis-ci.org/CrimsonVoid/Saga.svg?branch=master)](https://travis-ci.org/CrimsonVoid/Saga)
 
 
 ### Design questions
