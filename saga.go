@@ -42,51 +42,6 @@ func New(headers []string, rowValues ...[]interface{}) *Table {
 	return t
 }
 
-func NewFromMap(data ...map[string]interface{}) *Table {
-	// TODO - We expecte data to be valid, is this okay?
-
-	// sanity check, always return a valid Table
-	if len(data) == 0 {
-		return &Table{
-			headers: map[string]int{},
-		}
-	}
-
-	// colOrder is used to maintain order in which Table.cols will added;
-	// index is table.cols offset, and value is the lookup key from data
-	colOrder := make([]string, 0, len(data[0]))
-	headers := make(map[string]int, len(data[0]))
-
-	for colName := range data[0] {
-		colOrder = append(colOrder, colName)
-
-		// Since len(colOrder) increases by one every loop, we can use that
-		// as the offset marker for colName instead of maintaining a separate
-		// counter
-		headers[colName] = len(colOrder) - 1
-	}
-
-	table := &Table{
-		headers: headers,
-		cols:    make([][]interface{}, len(data[0])),
-	}
-
-	// pre-allocate cols
-	for i := range table.cols {
-		table.cols[i] = make([]interface{}, len(data))
-	}
-
-	// add data to table
-	for rowIdx, row := range data {
-		for colIdx, colName := range colOrder {
-			val := row[colName]
-			table.cols[colIdx][rowIdx] = val
-		}
-	}
-
-	return table
-}
-
 func (t *Table) InsertRows(headers []string, rowValues ...[]interface{}) *Table {
 	// DONE - What if we get extra headers? - Ignore them
 	// TODO - What if we get a subset of t.headers (t.cols is jagged now) - Set values to nil
@@ -98,23 +53,6 @@ func (t *Table) InsertRows(headers []string, rowValues ...[]interface{}) *Table 
 				t.cols[colIdx] = append(t.cols[colIdx], vals[i])
 			}
 		}
-	}
-
-	return t
-}
-
-func (t *Table) InsertMap(row map[string]interface{}) *Table {
-	// TODO - does not add new columns from row; should we be a little smarter
-	// about this?
-
-	if len(t.cols) != len(row) {
-		log.Panicf("Column size does not match: %v != %v\n", len(t.cols), len(row))
-		return t
-	}
-
-	for colName, i := range t.headers {
-		val := row[colName]
-		t.cols[i] = append(t.cols[i], val)
 	}
 
 	return t

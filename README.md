@@ -3,7 +3,7 @@
 
 ### Design questions
 - [ ] Should Table be immutable? We might be able get this rather cheaply?
-- [ ] Should we have functions that are inefficient (such as NewFromMap)?
+- [x] Should we have functions that are inefficient (such as NewFromMap)? No
 
 
 ### Table creation

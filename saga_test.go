@@ -166,40 +166,6 @@ func TestNew(t *testing.T) {
 	}
 }
 
-func TestNewFromMap(t *testing.T) {
-	cases := map[string]struct {
-		input    []map[string]interface{}
-		expected *Table
-	}{
-		"nil": {
-			input:    nil,
-			expected: &Table{headers: map[string]int{}},
-		},
-
-		"map": {
-			input: []map[string]interface{}{
-				{"id": 0, "name": "Name 0", "active": true},
-				{"id": 1, "name": "Name 1", "active": false},
-			},
-			expected: &Table{
-				headers: map[string]int{"id": 0, "name": 1, "active": 2},
-				cols: [][]interface{}{
-					[]interface{}{0, 1},
-					[]interface{}{"Name 0", "Name 1"},
-					[]interface{}{true, false},
-				},
-			},
-		},
-	}
-
-	for name, tc := range cases {
-		t.Run(name, func(t *testing.T) {
-			actual := NewFromMap(tc.input...)
-			compareTable(t, actual, tc.expected)
-		})
-	}
-}
-
 func TestInsertRows(t *testing.T) {
 	cases := map[string]struct {
 		headers   []string
