@@ -126,6 +126,30 @@ func TestInsertRows(t *testing.T) {
 			},
 			headers: []string{"id", "name", "active", "ieee754"},
 			rowValues: [][]interface{}{
+				{2, "Name 2", false, 1.23, nil},
+				{3, "Name 3", true, 2.34, nil},
+			},
+			expected: &Table{
+				headers: map[string]int{"id": 0, "name": 1, "active": 2},
+				cols: [][]interface{}{
+					[]interface{}{0, 1, 2, 3},
+					[]interface{}{"Name 0", "Name 1", "Name 2", "Name 3"},
+					[]interface{}{true, false, false, true},
+				},
+			},
+		},
+
+		"extra_column_values": {
+			initial: &Table{
+				headers: map[string]int{"id": 0, "name": 1, "active": 2},
+				cols: [][]interface{}{
+					[]interface{}{0, 1},
+					[]interface{}{"Name 0", "Name 1"},
+					[]interface{}{true, false},
+				},
+			},
+			headers: []string{"id", "name", "active"},
+			rowValues: [][]interface{}{
 				{2, "Name 2", false, 1.23},
 				{3, "Name 3", true, 2.34},
 			},
@@ -139,8 +163,98 @@ func TestInsertRows(t *testing.T) {
 			},
 		},
 
-		// TODO - initial is empty
-		// TODO - subset of headers
+		"all_headers_missing_from_table": {
+			initial: &Table{
+				headers: map[string]int{"id": 0, "name": 1, "active": 2},
+				cols: [][]interface{}{
+					[]interface{}{0, 1},
+					[]interface{}{"Name 0", "Name 1"},
+					[]interface{}{true, false},
+				},
+			},
+			headers: []string{"colA", "colB", "colC"},
+			rowValues: [][]interface{}{
+				{2, "Name 2", false},
+				{3, "Name 3", true},
+			},
+			expected: &Table{
+				headers: map[string]int{"id": 0, "name": 1, "active": 2},
+				cols: [][]interface{}{
+					[]interface{}{0, 1},
+					[]interface{}{"Name 0", "Name 1"},
+					[]interface{}{true, false},
+				},
+			},
+		},
+
+		"subset_of_headers": {
+			initial: &Table{
+				headers: map[string]int{"id": 0, "name": 1, "active": 2},
+				cols: [][]interface{}{
+					[]interface{}{0, 1},
+					[]interface{}{"Name 0", "Name 1"},
+					[]interface{}{true, false},
+				},
+			},
+			headers: []string{"id"},
+			rowValues: [][]interface{}{
+				{2},
+				{3},
+			},
+			expected: &Table{
+				headers: map[string]int{"id": 0, "name": 1, "active": 2},
+				cols: [][]interface{}{
+					[]interface{}{0, 1, 2, 3},
+					[]interface{}{"Name 0", "Name 1", nil, nil},
+					[]interface{}{true, false, nil, nil},
+				},
+			},
+		},
+
+		"nil_rowValues": {
+			initial: &Table{
+				headers: map[string]int{"id": 0, "name": 1, "active": 2},
+				cols: [][]interface{}{
+					[]interface{}{0, 1},
+					[]interface{}{"Name 0", "Name 1"},
+					[]interface{}{true, false},
+				},
+			},
+			headers:   []string{"id"},
+			rowValues: nil,
+			expected: &Table{
+				headers: map[string]int{"id": 0, "name": 1, "active": 2},
+				cols: [][]interface{}{
+					[]interface{}{0, 1},
+					[]interface{}{"Name 0", "Name 1"},
+					[]interface{}{true, false},
+				},
+			},
+		},
+
+		"empty_initial": {
+			initial: &Table{
+				headers: map[string]int{"id": 0, "name": 1, "active": 2},
+				cols: [][]interface{}{
+					[]interface{}{},
+					[]interface{}{},
+					[]interface{}{},
+				},
+			},
+			headers: []string{"id", "name", "active"},
+			rowValues: [][]interface{}{
+				{2, "Name 2", false},
+				{3, "Name 3", true},
+			},
+			expected: &Table{
+				headers: map[string]int{"id": 0, "name": 1, "active": 2},
+				cols: [][]interface{}{
+					[]interface{}{2, 3},
+					[]interface{}{"Name 2", "Name 3"},
+					[]interface{}{false, true},
+				},
+			},
+		},
 	}
 
 	for name, tc := range cases {

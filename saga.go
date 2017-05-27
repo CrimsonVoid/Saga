@@ -1,6 +1,8 @@
 package saga
 
-import "log"
+import (
+	"log"
+)
 
 type Table struct {
 	headers map[string]int
@@ -43,14 +45,33 @@ func New(headers []string, rowValues ...[]interface{}) *Table {
 }
 
 func (t *Table) InsertRows(headers []string, rowValues ...[]interface{}) *Table {
-	// DONE - What if we get extra headers? - Ignore them
-	// TODO - What if we get a subset of t.headers (t.cols is jagged now) - Set values to nil
-	// TODO - Pre-allocate?
+	if len(rowValues) == 0 {
+		return t
+	}
 
-	for _, vals := range rowValues {
+	// ensure that at least one element in headers exists in t.headers
+	found := false
+	for _, h := range headers {
+		if _, ok := t.headers[h]; ok {
+			found = true
+			break
+		}
+	}
+	if !found {
+		return t
+	}
+
+	offset := len(t.cols[0])
+
+	// pre-allocate memory
+	for i := range t.cols {
+		t.cols[i] = append(t.cols[i], make([]interface{}, len(rowValues))...)
+	}
+
+	for rowIdx, vals := range rowValues {
 		for i, header := range headers {
 			if colIdx, ok := t.headers[header]; ok {
-				t.cols[colIdx] = append(t.cols[colIdx], vals[i])
+				t.cols[colIdx][offset+rowIdx] = vals[i]
 			}
 		}
 	}
