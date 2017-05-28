@@ -44,6 +44,10 @@ func New(headers []string, rowValues ...[]interface{}) *Table {
 	return t
 }
 
+// InsertRows adds rowValues into Table. Values for any headers that does not
+// exist in Table are skipped; headers which are not provided will have their
+// values set to nil. Likewise, extra values at the end of the slice are also
+// ignored
 func (t *Table) InsertRows(headers []string, rowValues ...[]interface{}) *Table {
 	if len(rowValues) == 0 {
 		return t
