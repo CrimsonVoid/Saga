@@ -80,12 +80,12 @@ func (t *Table) InsertRows(headers []string, rowValues ...[]interface{}) *Table 
 }
 
 // UpdateColumn updates all values of colName to value. If the column does not
-// exist it is added
+// exist it is added. value can be a plain value or a generator `func() interface{}`
 func (t *Table) UpdateColumn(colName string, value interface{}) *Table {
 	// idx indicates which column values to update
 	idx, ok := t.headers[colName]
 
-	// create a new
+	// colName does not exists, create a new column
 	if !ok {
 		idx = len(t.headers)
 		t.headers[colName] = idx
@@ -98,6 +98,23 @@ func (t *Table) UpdateColumn(colName string, value interface{}) *Table {
 		t.cols = append(t.cols, values)
 	}
 
+	// use make to create a slice of nil values
+	if value == nil {
+		// all values were set to nil when we added the new column earlier
+		if ok {
+			var values []interface{}
+			if len(t.cols) > 0 {
+				values = make([]interface{}, len(t.cols[0]))
+			}
+
+			t.cols[idx] = values
+		}
+
+		return t
+	}
+
+	// value can be a generator function or plain value; normalize everything
+	// to a generator function to make things simpler when setting values
 	defaultFn := func() interface{} { return value }
 	switch val := value.(type) {
 	case func() interface{}:

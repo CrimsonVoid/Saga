@@ -86,9 +86,9 @@ func TestNew(t *testing.T) {
 
 func TestInsertRows(t *testing.T) {
 	cases := map[string]struct {
+		initial   *Table
 		headers   []string
 		rowValues [][]interface{}
-		initial   *Table
 		expected  *Table
 	}{
 		"more_rows": {
@@ -260,6 +260,157 @@ func TestInsertRows(t *testing.T) {
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
 			actual := tc.initial.InsertRows(tc.headers, tc.rowValues...)
+			compareTable(t, actual, tc.expected)
+		})
+	}
+}
+
+func TestUpdateRow(t *testing.T) {
+	cases := map[string]struct {
+		initial  *Table
+		colName  string
+		value    interface{}
+		expected *Table
+	}{
+		"existing_column": {
+			initial: &Table{
+				headers: map[string]int{"id": 0, "name": 1, "active": 2},
+				cols: [][]interface{}{
+					[]interface{}{0, 1},
+					[]interface{}{"Name 0", "Name 1"},
+					[]interface{}{true, false},
+				},
+			},
+			colName: "id",
+			value:   -1,
+			expected: &Table{
+				headers: map[string]int{"id": 0, "name": 1, "active": 2},
+				cols: [][]interface{}{
+					[]interface{}{-1, -1},
+					[]interface{}{"Name 0", "Name 1"},
+					[]interface{}{true, false},
+				},
+			},
+		},
+
+		"new_column": {
+			initial: &Table{
+				headers: map[string]int{"id": 0, "name": 1, "active": 2},
+				cols: [][]interface{}{
+					[]interface{}{0, 1},
+					[]interface{}{"Name 0", "Name 1"},
+					[]interface{}{true, false},
+				},
+			},
+			colName: "newCol",
+			value:   false,
+			expected: &Table{
+				headers: map[string]int{"id": 0, "name": 1, "active": 2, "newCol": 3},
+				cols: [][]interface{}{
+					[]interface{}{0, 1},
+					[]interface{}{"Name 0", "Name 1"},
+					[]interface{}{true, false},
+					[]interface{}{false, false},
+				},
+			},
+		},
+
+		"existing_column_fn": {
+			initial: &Table{
+				headers: map[string]int{"id": 0, "name": 1, "active": 2},
+				cols: [][]interface{}{
+					[]interface{}{0, 1},
+					[]interface{}{"Name 0", "Name 1"},
+					[]interface{}{true, false},
+				},
+			},
+			colName: "id",
+			value: func() func() interface{} {
+				i := 0
+				return func() interface{} { i++; return i * -100 }
+			}(),
+			expected: &Table{
+				headers: map[string]int{"id": 0, "name": 1, "active": 2},
+				cols: [][]interface{}{
+					[]interface{}{-100, -200},
+					[]interface{}{"Name 0", "Name 1"},
+					[]interface{}{true, false},
+				},
+			},
+		},
+
+		"new_column_fn": {
+			initial: &Table{
+				headers: map[string]int{"id": 0, "name": 1, "active": 2},
+				cols: [][]interface{}{
+					[]interface{}{0, 1},
+					[]interface{}{"Name 0", "Name 1"},
+					[]interface{}{true, false},
+				},
+			},
+			colName: "newCol",
+			value: func() func() interface{} {
+				i := 0
+				return func() interface{} { i++; return i * -100 }
+			}(),
+			expected: &Table{
+				headers: map[string]int{"id": 0, "name": 1, "active": 2, "newCol": 3},
+				cols: [][]interface{}{
+					[]interface{}{0, 1},
+					[]interface{}{"Name 0", "Name 1"},
+					[]interface{}{true, false},
+					[]interface{}{-100, -200},
+				},
+			},
+		},
+
+		"nil_existing_column": {
+			initial: &Table{
+				headers: map[string]int{"id": 0, "name": 1, "active": 2},
+				cols: [][]interface{}{
+					[]interface{}{0, 1},
+					[]interface{}{"Name 0", "Name 1"},
+					[]interface{}{true, false},
+				},
+			},
+			colName: "id",
+			value:   nil,
+			expected: &Table{
+				headers: map[string]int{"id": 0, "name": 1, "active": 2},
+				cols: [][]interface{}{
+					[]interface{}{nil, nil},
+					[]interface{}{"Name 0", "Name 1"},
+					[]interface{}{true, false},
+				},
+			},
+		},
+
+		"nil_new_column": {
+			initial: &Table{
+				headers: map[string]int{"id": 0, "name": 1, "active": 2},
+				cols: [][]interface{}{
+					[]interface{}{0, 1},
+					[]interface{}{"Name 0", "Name 1"},
+					[]interface{}{true, false},
+				},
+			},
+			colName: "newCol",
+			value:   nil,
+			expected: &Table{
+				headers: map[string]int{"id": 0, "name": 1, "active": 2, "newCol": 3},
+				cols: [][]interface{}{
+					[]interface{}{0, 1},
+					[]interface{}{"Name 0", "Name 1"},
+					[]interface{}{true, false},
+					[]interface{}{nil, nil},
+				},
+			},
+		},
+	}
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			actual := tc.initial.UpdateColumn(tc.colName, tc.value)
 			compareTable(t, actual, tc.expected)
 		})
 	}
