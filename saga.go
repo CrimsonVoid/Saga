@@ -1,9 +1,5 @@
 package saga
 
-import (
-	"log"
-)
-
 type Table struct {
 	headers map[string]int
 	cols    [][]interface{}
@@ -79,55 +75,6 @@ func (t *Table) InsertRows(headers []string, rowValues ...[]interface{}) *Table 
 			}
 		}
 	}
-
-	return t
-}
-
-// AddColumn adds a new column with an optional defaultValue (nil if not
-// provided); error if column already exists. defaultValue can be a plain value
-// or gnerator `func() interface{}`
-func (t *Table) AddColumn(colName string, defaultValue ...interface{}) *Table {
-	// check if colName already exists
-	if _, ok := t.headers[colName]; ok {
-		log.Panicf("Column %v already exists in table", colName)
-		return t
-	}
-
-	// optional defaultValue can be a generator function or plain value; normalize
-	// everything to a gnerator function to make things simpler when setting values
-	defaultFn := func() interface{} { return nil }
-	if len(defaultValue) > 0 {
-		switch val := defaultValue[0].(type) {
-		case nil:
-			// "empty" out defaultVaule; it will be checked later when we are
-			// adding values
-			defaultValue = defaultValue[0:0]
-		case func() interface{}:
-			defaultFn = val
-		default:
-			defaultFn = func() interface{} { return val }
-		}
-	}
-
-	// update headers with new colName
-	headersLen := len(t.headers)
-	t.headers[colName] = headersLen
-
-	// add len(cols[0]) number of values
-	values := []interface{}{}
-	if len(t.cols) > 0 {
-		values = make([]interface{}, len(t.cols[0]))
-
-		// values will all be nil by default, so only populate if the caller
-		// provided a default value. This should avoid some unnecessary function calls
-		if len(defaultValue) > 0 {
-			for i := range values {
-				values[i] = defaultFn()
-			}
-		}
-	}
-
-	t.cols = append(t.cols, values)
 
 	return t
 }

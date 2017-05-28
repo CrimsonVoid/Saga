@@ -17,7 +17,7 @@
 - [ ] Append tables
 
 ### Adding/Modifying column based data
-- [x] Add Column (TODO - Should there really be a distinction between Add and Update?)
+- [x] ~~Add Column (Removed)~~
 - [x] Update column
 - [ ] Rename columns (be sure to be smart if renamed colNames collide)
 - [ ] Delete columns (should not be an error if colName does not exist)
